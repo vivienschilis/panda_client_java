@@ -20,7 +20,8 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.BasicHttpContext;
-
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.message.BasicNameValuePair;
 
 import java.util.Date;
 import java.text.DateFormat;
@@ -31,6 +32,7 @@ import java.security.NoSuchAlgorithmException;
 import java.io.UnsupportedEncodingException;
 
 import java.io.InputStream;
+import org.apache.commons.codec.binary.Base64;
 
 public class Panda {
 	
@@ -74,11 +76,15 @@ public class Panda {
 	}
 	
 	public String get(String url, HashMap params) {
-		String requestUrl = this.apiUrl() + url;
+		HashMap sParams = signedParams("GET", url, params);
+		String flattenParams = canonicalQueryString(sParams);
+		
+		String requestUrl = this.apiUrl() + url + "?" + flattenParams;
 		HttpContext localContext = new BasicHttpContext();
 		
 		System.out.println(requestUrl);
 		HttpGet httpget = new HttpGet(requestUrl);
+		
 		try {
 			HttpResponse response = httpclient.execute(httpget, localContext);
 			
@@ -129,17 +135,17 @@ public class Panda {
 	
 	public static String generateSignature(String method, String url, String host, String secretKey, HashMap params) {
 		String queryString = Panda.canonicalQueryString(params);
-		String stringToSign = method.toUpperCase() + "\n" + host + "\n" + url + queryString;
-		System.out.println("debug");
+		String stringToSign = method.toUpperCase() + "\n" + host + "\n" + url + "\n" + queryString;
 		System.out.println(stringToSign);
-		System.out.println(queryString);
 		
 		try {
 			MessageDigest md = MessageDigest.getInstance("SHA-256");
-			md.reset();
 			md.update(stringToSign.getBytes("UTF-8"));
+			Base64 encoder = new Base64();
+			String signature = new String(encoder.encode(md.digest()),"UTF-8");
+			System.out.println(signature);
 			
-			return (new String(md.digest()));
+			return signature;
 		
 		}catch (NoSuchAlgorithmException nsae) {
 			System.out.println("Cannot find digest algorithm");
@@ -155,13 +161,13 @@ public class Panda {
 		Set entries = map.entrySet();
 		Iterator it = entries.iterator();
 		String queryString = "";
+		
+		List qparams = new ArrayList();
 		while (it.hasNext()) {
 			Map.Entry entry = (Map.Entry) it.next();
-			queryString += entry.getKey() + "=" + entry.getValue();
-			if(it.hasNext())
-				queryString += "&";
+			qparams.add(new BasicNameValuePair(entry.getKey().toString(), entry.getValue().toString()));
 		}
-		
+		queryString = URLEncodedUtils.format(qparams, "UTF-8");
 		return queryString;
 	}
 	

@@ -18,6 +18,8 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.BasicHttpContext;
 
 
 import java.util.Date;
@@ -27,6 +29,8 @@ import java.text.SimpleDateFormat;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.io.UnsupportedEncodingException;
+
+import java.io.InputStream;
 
 public class Panda {
 	
@@ -70,11 +74,25 @@ public class Panda {
 	}
 	
 	public String get(String url, HashMap params) {
-		HttpGet httpget = new HttpGet(url);
-
+		String requestUrl = this.apiUrl() + url;
+		HttpContext localContext = new BasicHttpContext();
+		
+		System.out.println(requestUrl);
+		HttpGet httpget = new HttpGet(requestUrl);
 		try {
-			httpclient.execute(httpget);
+			HttpResponse response = httpclient.execute(httpget, localContext);
+			
+			HttpEntity entity = response.getEntity();
+			if (entity != null) {
+			    InputStream instream = entity.getContent();
+			    int l;
+			    byte[] tmp = new byte[2048];
+			    while ((l = instream.read(tmp)) != -1) {
+			    }	
+					return new String(tmp);
+			}
 			return "";
+			
 		}catch(IOException e){
 			return "";
 		}

@@ -15,6 +15,9 @@ class Test {
 		HashMap params = new HashMap();
 		params.put("profiles", "11232445");
 		panda.signedParams("POST", "/videos.json", params);
+		result = panda.get("/profiles.json", new HashMap());
+		System.out.println(result);
+		
 	}
 }
 

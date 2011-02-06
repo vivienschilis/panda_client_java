@@ -1,29 +1,59 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>uk.co.newbamboo.Panda</groupId>
+  <groupId>com.pandastream.Panda</groupId>
   <artifactId>panda</artifactId>
   <packaging>jar</packaging>
   <version>0.1</version>
   <name>Panda - Video encoding plateform</name>
   <url>http://pandastream.com</url>
+  
+  <organization>
+    <name>New Bamboo</name>
+    <url>http://new-bamboo.co.uk</url>
+  </organization>
+  
+  <developers>
+    <developer>
+      <id>vivien</id>
+      <name>Vivien Schilis</name>
+      <email>vivien@new-bamboo.co.uk</email>
+    </developer>
+  </developers>
+  
   <dependencies>
+    <dependency>
+      <groupId>commons-httpclient</groupId>
+      <artifactId>commons-httpclient</artifactId>
+      <version>3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>1.4</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.4</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sf.json-lib</groupId>
+      <artifactId>json-lib</artifactId>
+      <version>2.2.3</version>
+      <classifier>jdk15</classifier>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <version>4.5</version>
       <scope>test</scope>
     </dependency>
-		<dependency>
-		    <groupId>org.apache.httpcomponents</groupId>
-		    <artifactId>httpclient</artifactId>
-		    <version>4.0.1</version>
-		</dependency>
-		<dependency>
-	    <groupId>org.apache.httpcomponents</groupId>
-	    <artifactId>httpmime</artifactId>
-	    <version>4.0.1</version>
-	    <scope>compile</scope>
-	  </dependency>
-  </dependencies>
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>2.4</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>  
 </project>

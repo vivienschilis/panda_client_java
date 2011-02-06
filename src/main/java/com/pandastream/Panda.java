@@ -1,4 +1,4 @@
-package uk.co.newbamboo;
+package com.pandastream;
 
 /**
  * @author <a href="mailto: vivien@new-bamboo.co.uk">Vivien Schilis</a>
@@ -7,23 +7,6 @@ package uk.co.newbamboo;
 
 import java.util.*;
 import java.io.IOException;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.cookie.Cookie;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
 
 import java.util.Date;
 import java.text.DateFormat;
@@ -57,6 +40,8 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 
+import com.pandastream.RestClient;
+
 public class Panda {
 	
 	private String apiHost = "staging.pandastream.com";
@@ -64,10 +49,8 @@ public class Panda {
 	private String accessKey;
 	private String secretKey;
 	private String cloudId;
-	DefaultHttpClient httpclient;
 	
 	public Panda() {
-		httpclient = new DefaultHttpClient();
 	}
 	
 	public String apiUrl() {
@@ -98,60 +81,25 @@ public class Panda {
 		return this.cloudId;
 	}
 	
-	public String get(String url, TreeMap params) {
-		TreeMap sParams = signedParams("GET", url, params);
-		String flattenParams = canonicalQueryString(sParams);
-		String requestUrl = this.apiUrl() + url + "?" + flattenParams;
-		HttpGet httpget = new HttpGet(requestUrl);
-		
-		try {
-			HttpResponse response = httpclient.execute(httpget);
-			return getStringResponse(response);
-		}catch(IOException e){
-			return "{error: 'Unexpected'}";
-		}
+	public RestClient getHttpClient(){
+		return new RestClient(apiUrl());
 	}
 	
-	
-	public String getStringResponse(HttpResponse response) throws IOException {
-		return EntityUtils.toString(response.getEntity());
+	public String get(String uri, TreeMap params) {
+		return getHttpClient().get(uri, signedParams("GET", uri, params));
 	}
-	
-	public String post(String url, TreeMap params) {
-		TreeMap sParams = signedParams("POST", url, params);
-		String requestUrl = this.apiUrl() + url;
-		HttpContext localContext;
-		localContext = new BasicHttpContext();
-		
-		try {
-			
-  
-			// UrlEncodedFormEntity entity = new UrlEncodedFormEntity(TreeMapToList(sParams), "UTF-8"); 
-			HttpPost httppost = new HttpPost(requestUrl);
-			httppost.setHeader("Content-Type", "application/x-www-form-urlencoded");
-			
-			httppost.setEntity(new StringEntity(canonicalQueryString(sParams), "UTF-8"));
-			HttpResponse response = httpclient.execute(httppost, localContext);
-			
-			return getStringResponse(response);
-			
-		}catch(IOException e){
-			return "{error: 'Unexpected'}";
-		}
+
+	public String post(String uri, TreeMap params) {
+		return getHttpClient().post(uri, signedParams("POST", uri, params));
 	}
-	
-	
-	public String put(String url, TreeMap params) {
-		TreeMap sParams = signedParams("PUT", url, params);
-		return "";
+
+	public String put(String uri, TreeMap params) {
+		return getHttpClient().put(uri, signedParams("PUT", uri, params));
 	}
-	
-	
-	public String delete(String url, TreeMap params) {
-		TreeMap sParams = signedParams("DELETE", url, params);
-		return "";
+
+	public String delete(String uri, TreeMap params) {
+		return getHttpClient().delete(uri, signedParams("DELETE", uri, params));
 	}
-	
 	
 	public TreeMap signedParams(String method, String url, TreeMap params) {
 		params.put("cloud_id", this.cloudId);
@@ -167,7 +115,7 @@ public class Panda {
   }
 	
 	public static String generateSignature(String method, String url, String host, String secretKey, TreeMap params) {
-		String queryString = Panda.canonicalQueryString(params);
+		String queryString = canonicalQueryString(params);
 		String stringToSign = method.toUpperCase() + "\n" + host + "\n" + url + "\n" + queryString;
 		
 		try {
@@ -192,24 +140,16 @@ public class Panda {
 	}
 	
 	public static String canonicalQueryString(TreeMap map) {
-		Set entries = map.entrySet();
-		Iterator it = entries.iterator();
 		String queryString = "";
-		
-		List qparams = TreeMapToList(map);
-		queryString = URLEncodedUtils.format(qparams, "UTF-8");
-		return queryString;
+    Set entries = map.entrySet();
+    Iterator it = entries.iterator();
+
+    while (it.hasNext()) {
+      Map.Entry entry = (Map.Entry) it.next();                        
+			queryString += entry.getKey().toString() + '=' + entry.getValue().toString();
+    }
+
+    return queryString;
 	}
-	
-	private static List TreeMapToList(TreeMap map) {
-		Set entries = map.entrySet();
-		Iterator it = entries.iterator();
-		
-		List qparams = new ArrayList();
-		while (it.hasNext()) {
-			Map.Entry entry = (Map.Entry) it.next();			
-			qparams.add(new BasicNameValuePair(entry.getKey().toString(), entry.getValue().toString()));
-		}
-		return qparams;
-	}
+
 }

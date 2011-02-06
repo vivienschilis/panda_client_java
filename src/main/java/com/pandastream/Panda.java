@@ -12,35 +12,15 @@ import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.io.UnsupportedEncodingException;
-
-import java.io.InputStream;
-import org.apache.commons.codec.binary.Base64;
-import javax.crypto.Mac;
-
-import java.security.Key;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SecureRandom;
-import java.security.Security;
-
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.Mac;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.InvalidKeyException;
-
-import java.security.SignatureException;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-
-
+import com.pandastream.ApiAuthentication;
 import com.pandastream.RestClient;
+
+
+import java.util.ArrayList;
+import java.util.List;
+
+import net.sf.json.JSONObject;
+import net.sf.json.JSONArray;
 
 public class Panda {
 	
@@ -50,7 +30,10 @@ public class Panda {
 	private String secretKey;
 	private String cloudId;
 	
-	public Panda() {
+	public Panda(String accessKey, String secretKey, String cloudId) {
+		setAccessKey(accessKey);
+		setSecretKey(secretKey);
+		setCloudId(cloudId);
 	}
 	
 	public String apiUrl() {
@@ -105,51 +88,62 @@ public class Panda {
 		params.put("cloud_id", this.cloudId);
 		params.put("access_key", this.accessKey);
 		params.put("timestamp", getTimestamp());
-		params.put("signature", Panda.generateSignature(method, url, this.apiHost, this.secretKey, params));
+		
+		String signature = ApiAuthentication.generateSignature(method, url, this.apiHost, this.secretKey, params);
+		params.put("signature", signature);
+		
 		return params;
 	}
 	
 	private String getTimestamp() {
-		SimpleDateFormat df = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ssz" );
-	  return df.format( new Date() );	  
+		
+		SimpleDateFormat dateFormatGmt = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ssz" );
+	  dateFormatGmt.setTimeZone(TimeZone.getTimeZone("UTC"));
+	
+		return dateFormatGmt.format( new Date() );
   }
-	
-	public static String generateSignature(String method, String url, String host, String secretKey, TreeMap params) {
-		String queryString = canonicalQueryString(params);
-		String stringToSign = method.toUpperCase() + "\n" + host + "\n" + url + "\n" + queryString;
-		
-		try {
-	
-      SecretKeySpec signingKey = new SecretKeySpec(secretKey.getBytes(), "HmacSHA256");
-      Mac mac = Mac.getInstance("HmacSHA256");
-      mac.init(signingKey);
 
-      byte[] rawHmac = mac.doFinal(stringToSign.getBytes());
-     
-			Base64 encoder = new Base64();
-			String signature = new String(encoder.encodeBase64(rawHmac));
-			return signature;
-		
-		}catch (NoSuchAlgorithmException nsae) {
-			System.out.println("Cannot find digest algorithm");
-			return "";	
-		}catch (InvalidKeyException ike) {
-			System.out.println("Unsupported Encoding");
-			return "";
+	public List<Video> getVideos() {
+		String videoPath = "/videos.json";
+		String jsonString = get(videoPath, new TreeMap());
+		JSONArray jsonObject = JSONArray.fromObject(jsonString);
+		return newVideoList(jsonObject);
+	}	
+
+	public Video getVideo(String id) {
+		String videoPath = "/videos/" + id + ".json";
+		String jsonString = get(videoPath, new TreeMap());
+		JSONObject jsonObject = JSONObject.fromObject(jsonString);
+		return new Video(jsonObject);
+	}	
+
+	public List<Encoding> getEncodings() {
+		String encodingPath = "/encodings.json";
+		String jsonString = get(encodingPath, new TreeMap());
+		JSONArray jsonObject = JSONArray.fromObject(jsonString);
+		return newEncodingList(jsonObject);
+	}
+	
+	public Encoding getEncoding(String id) {
+		String encodingPath = "/encodings/" + id + ".json";
+		String jsonString = get(encodingPath, new TreeMap());
+		JSONObject jsonObject = JSONObject.fromObject(jsonString);
+		return new Encoding(jsonObject);
+	}	
+
+  private List<Video> newVideoList(JSONArray jsonArray) {
+		List<Video> videos = new ArrayList<Video>(jsonArray.size());
+  	for (int i = 0; i < jsonArray.size(); i++) {
+    	videos.add(new Video(jsonArray.getJSONObject(i)));
 		}
-	}
-	
-	public static String canonicalQueryString(TreeMap map) {
-		String queryString = "";
-    Set entries = map.entrySet();
-    Iterator it = entries.iterator();
+		return videos;
+  }
 
-    while (it.hasNext()) {
-      Map.Entry entry = (Map.Entry) it.next();                        
-			queryString += entry.getKey().toString() + '=' + entry.getValue().toString();
-    }
-
-    return queryString;
-	}
-
+  private List<Encoding> newEncodingList(JSONArray jsonArray) {
+		List<Encoding> encodings = new ArrayList<Encoding>(jsonArray.size());
+  	for (int i = 0; i < jsonArray.size(); i++) {
+    	encodings.add(new Encoding(jsonArray.getJSONObject(i)));
+		}
+		return encodings;
+  }
 }

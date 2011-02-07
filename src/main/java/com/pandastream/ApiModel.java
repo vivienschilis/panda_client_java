@@ -8,10 +8,6 @@ public class ApiModel
 	
 	private JSONObject attributes;	
 	
-	public ApiModel(TreeMap map) {
-// > 		attributes = map;
-	}
-
 	public ApiModel(JSONObject json) {
 		attributes = json;
 	}

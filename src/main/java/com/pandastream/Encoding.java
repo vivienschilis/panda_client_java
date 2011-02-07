@@ -6,10 +6,6 @@ import net.sf.json.JSONObject;
 
 public class Encoding extends AudioVideoModel {
 
-	public Encoding(TreeMap map) {
-		super(map);
-	}
-	
 	public Encoding(JSONObject json) {
 		super(json);
 	}

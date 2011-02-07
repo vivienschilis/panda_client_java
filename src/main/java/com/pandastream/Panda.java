@@ -96,40 +96,74 @@ public class Panda {
 	}
 	
 	private String getTimestamp() {
-		
 		SimpleDateFormat dateFormatGmt = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ssz" );
 	  dateFormatGmt.setTimeZone(TimeZone.getTimeZone("UTC"));
-	
 		return dateFormatGmt.format( new Date() );
   }
 
 	public List<Video> getVideos() {
-		String videoPath = "/videos.json";
-		String jsonString = get(videoPath, new TreeMap());
+		String path = "/videos.json";
+		String jsonString = get(path, new TreeMap());
 		JSONArray jsonObject = JSONArray.fromObject(jsonString);
 		return newVideoList(jsonObject);
 	}	
 
 	public Video getVideo(String id) {
-		String videoPath = "/videos/" + id + ".json";
-		String jsonString = get(videoPath, new TreeMap());
+		String path = "/videos/" + id + ".json";
+		String jsonString = get(path, new TreeMap());
 		JSONObject jsonObject = JSONObject.fromObject(jsonString);
 		return new Video(jsonObject);
 	}	
 
 	public List<Encoding> getEncodings() {
-		String encodingPath = "/encodings.json";
-		String jsonString = get(encodingPath, new TreeMap());
+		String path = "/encodings.json";
+		String jsonString = get(path, new TreeMap());
+		JSONArray jsonObject = JSONArray.fromObject(jsonString);
+		return newEncodingList(jsonObject);
+	}
+	
+	public List<Encoding> getEncodings(String videoId) {
+		String path = "/videos/" + videoId +"/encodings.json";
+		String jsonString = get(path, new TreeMap());
+		// System.out.println(jsonString);
 		JSONArray jsonObject = JSONArray.fromObject(jsonString);
 		return newEncodingList(jsonObject);
 	}
 	
 	public Encoding getEncoding(String id) {
-		String encodingPath = "/encodings/" + id + ".json";
-		String jsonString = get(encodingPath, new TreeMap());
+		String path = "/encodings/" + id + ".json";
+		String jsonString = get(path, new TreeMap());
 		JSONObject jsonObject = JSONObject.fromObject(jsonString);
 		return new Encoding(jsonObject);
 	}	
+
+	public List<Profile> getProfiles() {
+		String path = "/profiles.json";
+		String jsonString = get(path, new TreeMap());
+		JSONArray jsonObject = JSONArray.fromObject(jsonString);
+		return newProfileList(jsonObject);
+	}
+	
+	public Profile getProfile(String id) {
+		String path = "/profiles/" + id + ".json";
+		String jsonString = get(path, new TreeMap());
+		JSONObject jsonObject = JSONObject.fromObject(jsonString);
+		return new Profile(jsonObject);
+	}
+	
+	public List<Cloud> getClouds() {
+		String path = "/encodings.json";
+		String jsonString = get(path, new TreeMap());
+		JSONArray jsonObject = JSONArray.fromObject(jsonString);
+		return newCloudList(jsonObject);
+	}
+
+	public List<Cloud> getCloud(String id) {
+		String path = "/clouds/" + id + ".json";
+		String jsonString = get(path, new TreeMap());
+		JSONArray jsonObject = JSONArray.fromObject(jsonString);
+		return newCloudList(jsonObject);
+	}
 
   private List<Video> newVideoList(JSONArray jsonArray) {
 		List<Video> videos = new ArrayList<Video>(jsonArray.size());
@@ -146,4 +180,21 @@ public class Panda {
 		}
 		return encodings;
   }
+
+  private List<Profile> newProfileList(JSONArray jsonArray) {
+		List<Profile> profiles = new ArrayList<Profile>(jsonArray.size());
+  	for (int i = 0; i < jsonArray.size(); i++) {
+    	profiles.add(new Profile(jsonArray.getJSONObject(i)));
+		}
+		return profiles;
+  }
+
+  private List<Cloud> newCloudList(JSONArray jsonArray) {
+		List<Cloud> clouds = new ArrayList<Cloud>(jsonArray.size());
+  	for (int i = 0; i < jsonArray.size(); i++) {
+    	clouds.add(new Cloud(jsonArray.getJSONObject(i)));
+		}
+		return clouds;
+  }
+
 }

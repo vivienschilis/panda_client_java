@@ -5,10 +5,6 @@ import net.sf.json.JSONObject;
 
 public class AudioVideoModel extends ApiModel
 {	
-	public AudioVideoModel(TreeMap map){
-		super(map);
-	}
-	
 	public AudioVideoModel(JSONObject json) {
 		super(json);
 	}
